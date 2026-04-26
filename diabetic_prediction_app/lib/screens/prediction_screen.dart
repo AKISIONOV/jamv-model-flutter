@@ -34,13 +34,26 @@ class _PredictionScreenState extends State<PredictionScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(source: source);
+    // Native resize prevents OutOfMemory crashes on older phones!
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+    
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
         _resultLabel = null;
         _confidence = null;
+        _isLoading = true; // Show loading spinner immediately
       });
+      
+      // Give the Flutter UI 300ms to physically render the image and spinner 
+      // before we lock the CPU with heavy AI processing.
+      await Future.delayed(const Duration(milliseconds: 300));
+      
       _runPrediction();
     }
   }
@@ -48,10 +61,6 @@ class _PredictionScreenState extends State<PredictionScreen> {
   Future<void> _runPrediction() async {
     if (_image == null) return;
     
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
       final result = await _tfliteService.predict(_image!);
       
