@@ -82,13 +82,34 @@ class _PredictionScreenState extends State<PredictionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('New Prediction')),
+      appBar: AppBar(title: const Text('Retinal Scan Analysis')),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Please upload a valid Diabetic Retinopathy retinal scan image. This model is trained exclusively to predict DR from retinal images.',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
               _image == null
                   ? Container(
                       height: 300,
@@ -97,7 +118,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      child: const Icon(Icons.image, size: 100, color: Colors.grey),
+                      child: const Icon(Icons.remove_red_eye, size: 100, color: Colors.grey),
                     )
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(15),
@@ -131,7 +152,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                     child: Column(
                       children: [
                         Text(
-                          'Prediction Result',
+                          'Analysis Result',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const Divider(),
