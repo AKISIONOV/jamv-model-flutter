@@ -1,0 +1,55 @@
+name: Build Flutter APK Offline Edge AI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install TensorFlow
+        run: pip install tensorflow tf-keras
+
+      - name: Convert Keras Model to TFLite
+        run: |
+          python convert_model.py
+          mkdir -p diabetic_prediction_app/assets/models/
+          mv best_model.tflite diabetic_prediction_app/assets/models/model.tflite
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Generate Flutter Platform Folders (Android/iOS)
+        run: |
+          cd diabetic_prediction_app
+          flutter create .
+
+      - name: Get Flutter Dependencies
+        run: |
+          cd diabetic_prediction_app
+          flutter pub get
+
+      - name: Build Android APK
+        run: |
+          cd diabetic_prediction_app
+          flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DiabeticPredictionApp-Release-APK
+          path: diabetic_prediction_app/build/app/outputs/flutter-apk/app-release.apk
