@@ -1,0 +1,1 @@
+0: No Diabetic Retinopathy\n1: Mild Diabetic Retinopathy\n2: Moderate Diabetic Retinopathy\n3: Severe Diabetic Retinopathy\n4: Proliferative Diabetic Retinopathy
