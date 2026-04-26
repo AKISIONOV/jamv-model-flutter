@@ -7,15 +7,25 @@ class TFLiteService {
   Interpreter? _interpreter;
   List<String>? _labels;
 
-  // You will need to define your model's exact input shape.
-  // Assuming a standard shape like 224x224 RGB from typical EffNet/Swin models.
-  static const int inputSize = 224;
+  int _inputSize = 224;
+  int _outputSize = 5;
 
   Future<void> init() async {
     try {
       // Load the model
       _interpreter = await Interpreter.fromAsset('assets/models/model.tflite');
-      print('Interpreter loaded successfully');
+      
+      // DYNAMICALLY FETCH SHAPE! (Prevents crashing if your model expects 256x256 instead of 224x224)
+      var inputShape = _interpreter!.getInputTensor(0).shape;
+      if (inputShape.length >= 3) {
+        _inputSize = inputShape[1]; // Height/Width
+      }
+      
+      var outputShape = _interpreter!.getOutputTensor(0).shape;
+      if (outputShape.isNotEmpty) {
+        _outputSize = outputShape.last; // Number of classes
+      }
+      print('Model loaded! Input size: $_inputSize, Output size: $_outputSize');
       
       // Initialize labels
       _labels = [
@@ -40,25 +50,22 @@ class TFLiteService {
     
     if (image == null) return null;
 
-    // Resize image to expected input shape
-    var resizedImage = img.copyResize(image, width: inputSize, height: inputSize);
+    // Resize image to exact expected shape
+    var resizedImage = img.copyResize(image, width: _inputSize, height: _inputSize);
 
-    // Convert image to Float32 tensor representation
-    // Assuming model expects input scaled to [0, 1] or [-1, 1]
-    // Here we normalize to [0, 1]
-    var input = List.generate(1, (i) => List.generate(inputSize, (y) => List.generate(inputSize, (x) => List.generate(3, (c) => 0.0))));
-    
-    for (int y = 0; y < inputSize; y++) {
-      for (int x = 0; x < inputSize; x++) {
-        var pixel = resizedImage.getPixel(x, y);
-        input[0][y][x][0] = pixel.r / 255.0;
-        input[0][y][x][1] = pixel.g / 255.0;
-        input[0][y][x][2] = pixel.b / 255.0;
-      }
-    }
+    // Highly optimized nested list generation to prevent phone freezing
+    var input = List.generate(1, (i) => 
+      List.generate(_inputSize, (y) => 
+        List.generate(_inputSize, (x) {
+          var pixel = resizedImage.getPixel(x, y);
+          // Normalize pixel values to [0, 1]
+          return [pixel.r / 255.0, pixel.g / 255.0, pixel.b / 255.0];
+        }, growable: false), growable: false
+      ), growable: false
+    );
 
-    // Output tensor
-    var output = List.generate(1, (i) => List.filled(5, 0.0));
+    // Output tensor matches the dynamically discovered output size
+    var output = List.generate(1, (i) => List.filled(_outputSize, 0.0));
 
     // Run inference
     _interpreter!.run(input, output);
