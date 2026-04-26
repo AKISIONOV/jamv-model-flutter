@@ -54,7 +54,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   padding: const EdgeInsets.only(right: 20),
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
-                direction: DismissibleDirection.endToStart,
+                direction: DismissDirection.endToStart,
                 onDismissed: (direction) async {
                   await DatabaseHelper.instance.delete(record.id!);
                   _refreshList();
