@@ -17,8 +17,14 @@ class TFLiteService {
       _interpreter = await Interpreter.fromAsset('assets/models/model.tflite');
       print('Interpreter loaded successfully');
       
-      // Initialize labels (e.g., 'Negative', 'Positive')
-      _labels = ['No Diabetic Retinopathy', 'Diabetic Retinopathy Detected'];
+      // Initialize labels
+      _labels = [
+        'No Diabetic Retinopathy',
+        'Mild Diabetic Retinopathy',
+        'Moderate Diabetic Retinopathy',
+        'Severe Diabetic Retinopathy',
+        'Proliferative Diabetic Retinopathy'
+      ];
       
     } catch (e) {
       print('Failed to load model.');
@@ -52,7 +58,7 @@ class TFLiteService {
     }
 
     // Output tensor
-    var output = List.generate(1, (i) => List.filled(2, 0.0));
+    var output = List.generate(1, (i) => List.filled(5, 0.0));
 
     // Run inference
     _interpreter!.run(input, output);
